@@ -1,22 +1,16 @@
-from my_pack.dbscan_setup import setups
-from my_pack.clustering import cluster
+from my_pack.dbscan_setup import file_input,output_file_setup
+from my_pack.clustering import dbscan
 import sys
 
 
-# global variables
-'''
 input_file_name = sys.argv[1]
+file_name = input_file_name[:(len(input_file_name) - 4)]
 cluster_number = int(sys.argv[2])
-eps = int(sys.argv[3])
+eps = float(sys.argv[3])
 minPts = int(sys.argv[4])
-'''
-input_file_name = '../data/input1.txt'
-cluster_number = 8
-eps = 15
-minPts = 22
 
-# setups : input file stream
-# points : point class objects
-points = setups(input_file_name)
-cluster(cluster_number, eps, minPts, points)
-#print(points)
+points = file_input(input_file_name)
+
+result = dbscan(cluster_number, eps, minPts, points)
+
+output_file_setup(file_name, cluster_number, result)

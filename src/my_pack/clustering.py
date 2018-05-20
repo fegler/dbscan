@@ -1,43 +1,36 @@
-import random
-import queue
 
+NOCLUSTER = None
+NOISE = False
 
-def cluster(cls_num, eps, minPt, points):
-    n = cls_num
-    inputs = points
-    for i in range(1, n):
-        center = random.choice(inputs)  # pick random initial point
-        [core, dd_list] = center.core_test(eps, minPt, inputs)
-        if core == False:
-            continue
-        cluster_ele = bfs(center, eps, minPt, inputs, dd_list)
-        output_file_name = 'input1_cluster' + str(i) + '.txt'
-        output_file = open(output_file_name, "w")
-        if cluster_ele is []:
-            print("its wrong!!")
-        for i in cluster_ele:
-            output_file.write(str(i.id) + '\n')
-            inputs.remove(i)
+def dbscan(n, eps, minpt, points):
+    cluster_num = 0
+    for i in points:
+        if cluster_num == n:
+            break
+        if i.status == NOCLUSTER:
+            is_clu = clustering(i, cluster_num, eps, minpt, points)
+            if is_clu:
+                cluster_num = cluster_num + 1
+    return points
 
+def clustering(point, n, eps, minpt, inputs):
+    [is_core, reachable] = point.core_test(eps,minpt,inputs)
+    if is_core is False:
+        point.status = NOISE
+        return False
+    else:
+        point.status = n
+        for i in reachable:
+            i.status = n
+        while(len(reachable) > 0):
+            cur = reachable[0]
+            [core, reach] = cur.core_test(eps, minpt, inputs)
+            if core:
+                for i in reach:
+                    if i.status == NOISE or i.status == NOCLUSTER:
+                        if i.status == NOCLUSTER:
+                            reachable.append(i)
+                        i.status = n
 
-def bfs(now, eps, minpt, inputs, dd_list):
-    q = queue.Queue()
-    cluster_elements = []
-    check = set()
-    check.add(now)
-    cluster_elements.append(now)
-    for i in dd_list:
-        q.put(i)
-        check.add(i)
-        cluster_elements.append(i)
-
-    while q.qsize() != 0:
-        top = q.get()
-        if top in check: continue
-        for i in inputs:
-            if i in check: continue
-            if top.in_eps(i):
-                cluster_elements.append(i)
-                check.add(i)
-                q.put(i)
-    return cluster_elements
+            reachable = reachable[1:]
+        return True
